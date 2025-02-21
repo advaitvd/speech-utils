@@ -6,6 +6,7 @@ from tqdm import tqdm
 import audiosegment
 import os
 import json
+import pandas as pd
 
 
 def get_token_offsets(emission, transcript, waveform, dictionary, sample_rate=16000):
@@ -71,16 +72,19 @@ def load_model(model="Harveenchadha/vakyansh-wav2vec2-marathi-mrm-100"):
     return w2v_model, w2v_processor, lang_dict
 
 
-def main(audio_file, transcript, model="Harveenchadha/vakyansh-wav2vec2-marathi-mrm-100", out_dir='./out'):
+def main(audio_file, transcript_csv, model="Harveenchadha/vakyansh-wav2vec2-marathi-mrm-100", out_dir='./out'):
     os.makedirs(out_dir, exist_ok=True)
     model, processor, dictionary = load_model(model=model)
 
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     model = model.to(device)
 
-    transcript = open(transcript, 'r').read().strip().replace('\n', '$ ')
-    if transcript[-2:] != '$ ':
-        transcript += '$'
+    df_transcript = pd.read_csv(transcript_csv)
+
+    transcript = ' '.join([txt + '\\' for txt in df_transcript['text']])
+
+    if transcript[-2:] != '\\ ':
+        transcript += '\\'
 
     TRANSCRIPT = transcript.split()
 
@@ -109,9 +113,20 @@ def main(audio_file, transcript, model="Harveenchadha/vakyansh-wav2vec2-marathi-
         if not start_sent:
             start_sent = start
 
-        if tok[-1] == '$':
+        if tok[-1] == '\\':
             end_sent = end + 1
-            audio[start_sent:end_sent].export(os.path.join(out_dir, os.path.basename(audio_file.replace('.wav', f'_{chunk_idx:05d}.wav'))))
+            audio[start_sent:end_sent].export(
+                os.path.join(
+                    out_dir,
+                    os.path.basename(
+                        audio_file.replace(
+                            '.wav',
+                            f'_{df_transcript.iloc[chunk_idx]["domain_name"]}_00001_{chunk_idx:05d}.wav'
+                            )
+                        )
+                    ),
+                    format='wav'
+                )
             chunk_idx += 1
             start_sent = None
 
@@ -121,8 +136,8 @@ if __name__=="__main__":
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--audio', type=str, required=True)
-    parser.add_argument('--transcript', type=str, required=True)
+    parser.add_argument('--transcript_csv', type=str, required=True)
     parser.add_argument('--model', type=str, default="Harveenchadha/vakyansh-wav2vec2-marathi-mrm-100")
     parser.add_argument('--out', type=str, default="./out")
     args = parser.parse_args()
-    main(args.audio, args.transcript, args.model, args.out)
+    main(args.audio, args.transcript_csv, args.model, args.out)
