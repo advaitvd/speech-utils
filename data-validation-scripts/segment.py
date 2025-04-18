@@ -8,6 +8,9 @@ from tqdm import tqdm
 # Date   : 14-04-2025
 
 root = sys.argv[1]
+if root[0] != '/':
+    root = os.path.join(os.getcwd(), root)
+
 segments = os.path.join(root, 'Segments')
 os.makedirs(segments, exist_ok=True)
 
