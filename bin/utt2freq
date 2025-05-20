@@ -1,0 +1,42 @@
+#!/opt/conda/bin/python
+
+# Author : Advait Vinay Dhopeshwarkar (advait.dhopeshwarkar@tihiitb.org)
+# Date   : 14-04-2025
+
+import torchaudio
+import sys
+import tqdm
+from concurrent.futures import ProcessPoolExecutor
+
+
+# Function to process each audio file
+def process_audio(item):
+    utt, wav = item
+    try:
+        data, sr = torchaudio.load(wav)
+        return f"{utt}\t{int(sr)}k"
+    except Exception as e:
+        return f"{utt}\tERROR: {str(e)}"
+
+
+def main():
+    scp = sys.argv[1]
+
+    # Read SCP file
+    with open(scp, 'r') as f:
+        lines = [line.split() for line in f.read().strip().split('\n')]
+        utt2wav = {utt: wav for utt, wav in lines}
+
+    # Use ProcessPoolExecutor for parallel processing
+    with ProcessPoolExecutor() as executor:
+        results = list(
+            tqdm.tqdm(executor.map(process_audio, utt2wav.items()), total=len(utt2wav), desc="Processed")
+        )
+
+    # Print results
+    for result in results:
+        print(result)
+
+
+if __name__ == "__main__":
+    main()

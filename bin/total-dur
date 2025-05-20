@@ -1,0 +1,18 @@
+#!/opt/conda/bin/python
+
+# Author : Advait Vinay Dhopeshwarkar (advait.dhopeshwarkar@tihiitb.org)
+# Date   : 14-04-2025
+
+import sys
+
+utt2dur = sys.argv[1]
+
+with open(utt2dur, 'r') as f:
+    lines = [line.split() for line in f.read().strip().split('\n')]
+    total_dur = 0.0
+    for utt, dur in lines:
+        if dur != 'None':
+            total_dur += float(dur)
+
+print(f"Total Duration: {total_dur:0.2f}s ({int((total_dur // 60) // 60):02}:{int((total_dur // 60) % 60):02}:{int(total_dur % 60):02})")
+

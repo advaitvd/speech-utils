@@ -1,0 +1,47 @@
+#!/opt/conda/bin/python
+
+# Author : Advait Vinay Dhopeshwarkar (advait.dhopeshwarkar@tihiitb.org)
+# Date   : 14-04-2025
+
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--min_dur", default=0.0)
+parser.add_argument("--max_dur", default=1000000000.0)
+parser.add_argument("--utt2dur", required=True)
+parser.add_argument("--scp", required=True)
+
+args = parser.parse_args()
+
+min_dur = float(args.min_dur)
+max_dur = float(args.max_dur)
+utt2dur = args.utt2dur
+scp = args.scp
+if scp[-4:] == '.scp':
+    output = scp.replace('.scp', '.filtered.scp')
+else:
+    output = scp + '.filtered'
+
+with open(utt2dur, 'r') as f:
+    lines = [line.split() for line in f.read().strip().split('\n')]
+    utt2dur = {}
+    for utt, dur in lines:
+        if dur != 'None':
+            utt2dur[utt] = float(dur)
+        else:
+            utt2dur[utt] = None
+
+utt2dur_filtered = {}
+for utt, dur in utt2dur.items():
+    if (dur is not None) and min_dur <= dur <= max_dur:
+        utt2dur_filtered[utt] = dur
+
+with open(scp, 'r') as f:
+    lines = [line.split('\t') for line in f.read().strip().split('\n')]
+    
+    lines = [(utt, wav) for utt, wav in lines if utt in utt2dur_filtered]
+
+with open(output, 'w') as f:
+    for utt, wav in lines:
+        f.write(f"{utt}\t{wav}\n")
+

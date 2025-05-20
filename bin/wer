@@ -1,0 +1,34 @@
+#!/opt/conda/bin/python
+
+# Author : Advait Vinay Dhopeshwarkar (advait.dhopeshwarkar@tihiitb.org)
+# Date   : 14-04-2025
+
+import argparse
+import jiwer
+
+parser = argparse.ArgumentParser(
+        description="WER, CER calculation script. Input must be line by line  \
+                matching ref and hyp without utterance IDs. You might have to  \
+                upgrade jiwer to the latest version with $pip install -U jiwer")
+parser.add_argument("--ref", required=True)
+parser.add_argument("--hyp", required=True)
+parser.add_argument("--cer", action='store_true')
+
+args = parser.parse_args()
+
+ref = args.ref
+hyp = args.hyp
+cer = args.cer
+
+with open(ref, 'r') as f:
+    ref_list = f.read().strip().split('\n')
+
+with open(hyp, 'r') as f:
+    hyp_list = f.read().strip().split('\n')
+
+if cer:
+    out = jiwer.process_characters(ref_list, hyp_list)
+else:
+    out = jiwer.process_words(ref_list, hyp_list)
+
+print(jiwer.visualize_alignment(out))

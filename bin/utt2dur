@@ -1,0 +1,28 @@
+#!/opt/conda/bin/python
+
+# Author : Advait Vinay Dhopeshwarkar (advait.dhopeshwarkar@tihiitb.org)
+# Date   : 14-04-2025
+
+from pydub import AudioSegment
+import sys
+
+scp = sys.argv[1]
+
+with open(scp, 'r') as f:
+    lines = f.read().strip().split('\n')
+    utt2wav = {}
+    for line in lines:
+        utt, wav = line.split()
+        utt2wav[utt] = wav
+
+def get_dur(wav):
+    try:
+        audio = AudioSegment.from_wav(wav)
+        duration = len(audio) / 1000
+    except:
+        duration = None
+    return duration
+
+for utt, wav in utt2wav.items():
+    dur = get_dur(wav)
+    print(f"{utt}\t{dur}")
