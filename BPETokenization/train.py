@@ -46,9 +46,6 @@ def train(text, vocab_size=1024):
             last_added = False
             while i < len(word_list) - 1:
                 x, y = word_list[i], word_list[i + 1]
-                if x == "_tokenizatio" and a == "_tokenizatio":
-                    import pdb
-                    pdb.set_trace()
                 if (x, y) == (a, b):
                     word_list_new.append(x + y)
                     i += 2
